@@ -64,7 +64,7 @@ from .models import Experiment, ExperimentResearcher, Subject, QuestionnaireResp
     DigitalGamePhase, ContextTree, DigitalGamePhaseData, Publication, \
     GenericDataCollection, GenericDataCollectionData, GoalkeeperGameLog, ScheduleOfSending, \
     GoalkeeperGameConfig, GoalkeeperGameResults, EEGFile, EMGFile, AdditionalDataFile, GenericDataCollectionFile, \
-    DigitalGamePhaseFile, PortalSelectedQuestion, ComponentAdditionalFile, GoalkeeperPhase
+    DigitalGamePhaseFile, PortalSelectedQuestion, ComponentAdditionalFile, GoalkeeperPhase, EyeTracker
 
 from .forms import ExperimentForm, QuestionnaireResponseForm, FileForm, GroupForm, InstructionForm, \
     ComponentForm, StimulusForm, BlockForm, ComponentConfigurationForm, ResearchProjectForm, NumberOfUsesToInsertForm, \
@@ -84,7 +84,7 @@ from .forms import ExperimentForm, QuestionnaireResponseForm, FileForm, GroupFor
     EMGSurfacePlacementRegisterForm, EMGIntramuscularPlacementRegisterForm, EMGNeedlePlacementRegisterForm, \
     SubjectStepDataForm, EMGPreamplifierFilterSettingForm, CoilModelForm, TMSDataForm, TMSLocalizationSystemForm, \
     HotSpotForm, DigitalGamePhaseForm, ContextTreeForm, DigitalGamePhaseDataForm, PublicationForm, \
-    GenericDataCollectionForm, GenericDataCollectionDataForm, ResendExperimentForm, ResearchProjectOwnerForm
+    GenericDataCollectionForm, GenericDataCollectionDataForm, ResendExperimentForm, ResearchProjectOwnerForm, EyeTrackerRegisterForm
 
 from .portal import get_experiment_status_portal, \
     send_experiment_to_portal, get_portal_status, \
@@ -13323,7 +13323,7 @@ def setup_menu(request, template_name="experiment/setup_menu.html"):
             'item': _('Manufacturer'),
             'href': reverse("manufacturer_list", args=()),
             'quantity': Manufacturer.objects.all().count()
-        },
+        }
     ]
 
     device_register_list = [
@@ -13373,9 +13373,145 @@ def setup_menu(request, template_name="experiment/setup_menu.html"):
             reverse("tmsdevice_list", args=()),
             'quantity': TMSDevice.objects.all().count()
         },
+        {
+            'item': _('Eye Tracker'), 'href':
+            reverse("eyetracker_list", args=()),
+            'quantity': EyeTracker.objects.all().count()
+        },
     ]
 
     context = {"basic_register_list": basic_register_list,
                "device_register_list": device_register_list}
 
     return render(request, template_name, context)
+
+
+
+
+
+
+############################################################
+
+
+
+
+
+@login_required
+@permission_required('experiment.register_equipment')
+def eyetracker_list(request, template_name="experiment/eyetracker_list.html"):
+    return render(request, template_name, {"equipments": EyeTracker.objects.all().order_by('identification')})
+
+
+@login_required
+@permission_required('experiment.register_equipment')
+def eyetracker_create(request, template_name="experiment/eyetracker_register.html"):
+
+    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, initial={'equipment_type': 'eyetracker'})
+
+    if request.method == "POST":
+
+        if request.POST['action'] == "save":
+
+            if eyetracker_form.is_valid():
+
+                eyetracker_added = eyetracker_form.save(commit=False)
+                eyetracker_added.equipment_type = 'eyetracker'
+                eyetracker_added.save()
+
+                messages.success(request, _('Eye Tracker created successfully.'))
+                redirect_url = reverse("eyetracker_view", args=(eyetracker_added.id,))
+                return HttpResponseRedirect(redirect_url)
+
+            else:
+                messages.warning(request, _('Information not saved.'))
+
+        else:
+            messages.warning(request, _('Action not available.'))
+
+    context = {"equipment_form": eyetracker_form,
+               "creating": True,
+               "editing": True
+               # "tags": tags
+               }
+
+    return render(request, template_name, context)
+
+
+@login_required
+@permission_required('experiment.register_equipment')
+def eyetracker_update(request, eyetracker_id, template_name="experiment/eyetracker_register.html"):
+    eyetracker = get_object_or_404(EyeTracker, pk=eyetracker_id)
+
+    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, instance=eyetracker)
+
+    if request.method == "POST":
+        if request.POST['action'] == "save":
+            if eyetracker_form.is_valid():
+
+                # if eyetracker_form.has_changed() or changed_tags:
+                if eyetracker_form.has_changed():
+                    eyetracker_form.save()
+                    messages.success(request, _('Eye Tracker updated successfully.'))
+                else:
+                    messages.success(request, _('There is no changes to save.'))
+
+                redirect_url = reverse("eyetracker_view", args=(eyetracker.id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"equipment": eyetracker,
+               "equipment_form": eyetracker_form,
+               "editing": True
+               }
+
+    return render(request, template_name, context)
+
+
+@login_required
+@permission_required('experiment.register_equipment')
+def eyetracker_view(request, eyetracker_id, template_name="experiment/eyetracker_register.html"):
+    eyetracker = get_object_or_404(EyeTracker, pk=eyetracker_id)
+
+    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, instance=eyetracker)
+
+    for field in eyetracker_form.fields:
+        eyetracker_form.fields[field].widget.attrs['disabled'] = True
+
+    if request.method == "POST":
+        if request.POST['action'] == "remove":
+
+            try:
+                eyetracker.delete()
+                messages.success(request, _('Eye Tracker removed successfully.'))
+                return redirect('eyetracker_list')
+            except ProtectedError:
+                messages.error(request, _("Error trying to delete Eye Tracker."))
+                redirect_url = reverse("eyetracker_view", args=(eyetracker_id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"can_change": True,
+               "equipment": eyetracker,
+               "equipment_form": eyetracker_form
+               }
+
+    return render(request, template_name, context)
+
+
+def search_cid10_ajax(request):
+    cid_10_list = ''
+
+    if request.method == "POST":
+        search_text = request.POST['search_text']
+        group_id = request.POST['group_id']
+
+        if search_text:
+            cid_10_list = ClassificationOfDiseases.objects.filter(
+                Q(abbreviated_description__icontains=search_text)
+                | Q(description__icontains=search_text)
+                | Q(code__icontains=search_text))
+
+        if group_id:
+            return render_to_response(
+                'experiment/ajax_cid10.html', {'cid_10_list': cid_10_list, 'group_id': group_id})
+        else:
+            return render_to_response(
+                'export/diagnoses.html', {'classification_of_diseases_list': cid_10_list})

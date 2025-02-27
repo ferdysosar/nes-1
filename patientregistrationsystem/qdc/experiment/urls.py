@@ -445,4 +445,10 @@ urlpatterns = [
     # Questionnaire
     url(r'^group/(?P<group_id>\d+)/questionnaire/(?P<component_configuration_id>\d+)/$', views.questionnaire_view,
         name='questionnaire_view'),
+
+    #Eye Tracker
+    url(r'^eyetracker/list/$', views.eyetracker_list, name='eyetracker_list'),
+    url(r'^eyetracker/new/$', views.eyetracker_create, name='eyetracker_new'),
+    url(r'^eyetracker/(?P<eyetracker_id>\d+)/$', views.eyetracker_view, name='eyetracker_view'),
+    url(r'^eyetracker/edit/(?P<eyetracker_id>\d+)/$', views.eyetracker_update, name='eyetracker_edit'),
 ]

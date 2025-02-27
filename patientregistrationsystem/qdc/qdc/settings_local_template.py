@@ -1,15 +1,15 @@
 SECRET_KEY = 'your_secret_key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 DEBUG404 = True
 
 TEMPLATE_DEBUG = DEBUG
 
 # SECURITY WARNING: don't run with "is testing" on in production
-IS_TESTING = False
+IS_TESTING = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 # https://docs.djangoproject.com/en/1.8/ref/settings/#std:setting-STATIC_ROOT
 STATIC_ROOT = ''
@@ -19,9 +19,9 @@ STATIC_ROOT = ''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'database_name',
-        'USER': 'user',
-        'PASSWORD': 'password',
+        'NAME': 'nes',
+        'USER': 'nes',
+        'PASSWORD': '1234',
         'HOST': 'localhost',
     }
 }

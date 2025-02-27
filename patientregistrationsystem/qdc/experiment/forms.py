@@ -2,10 +2,10 @@
 
 from django.contrib.auth.models import User
 from django.forms import ModelForm, TextInput, Textarea, Select, DateInput, TypedChoiceField, RadioSelect, \
-    ValidationError, Form, IntegerField, NumberInput, TimeInput, URLInput, ModelChoiceField
+    ValidationError, Form, IntegerField, NumberInput, TimeInput, URLInput, ModelChoiceField, CheckboxInput
 from django.shortcuts import get_object_or_404
 from django.utils.encoding import smart_text
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from experiment.models import Experiment, QuestionnaireResponse, SubjectOfGroup, Group, Component, Stimulus, Block, \
     Instruction, ComponentConfiguration, ResearchProject, EEGData, EEGSetting, Equipment, EEG, EMG, Amplifier, \
@@ -17,7 +17,7 @@ from experiment.models import Experiment, QuestionnaireResponse, SubjectOfGroup,
     MuscleSubdivision, TMS, TMSSetting, TMSDeviceSetting, Software, SoftwareVersion, CoilModel, TMSDevice, \
     EMGIntramuscularPlacement, EMGNeedlePlacement, SubjectStepData, EMGPreamplifierFilterSetting, TMSData, HotSpot, \
     CoilOrientation, DirectionOfTheInducedCurrent, TMSLocalizationSystem, DigitalGamePhase, ContextTree, \
-    DigitalGamePhaseData, Publication, GenericDataCollection, GenericDataCollectionData, ScheduleOfSending
+    DigitalGamePhaseData, Publication, GenericDataCollection, GenericDataCollectionData, ScheduleOfSending, EyeTracker
 
 
 class ExperimentForm(ModelForm):
@@ -1397,3 +1397,21 @@ class ResendExperimentForm(ModelForm):
                                                     'data-error': _('Reason must be filled.'),
                                                     'autofocus': ''}),
         }
+
+class EyeTrackerRegisterForm(ModelForm):
+    class Meta:
+        model = EyeTracker
+
+        fields = ['manufacturer', 'identification', 'description', 'serial_number', 'calibration_method', 'sampling_rate']
+
+        widgets = {
+            'manufacturer': Select(attrs={'class': 'form-control', 'required': "",
+                                          'data-error': _('Manufacturer must be filled.')}),
+            'identification': TextInput(attrs={'class': 'form-control', 'required': "",
+                                               'data-error': _('Identification must be filled.')}),
+            'description': Textarea(attrs={'class': 'form-control', 'rows': '4'}),
+            'serial_number': TextInput(attrs={'class': 'form-control'}),
+            'calibration_method': TextInput( attrs={'class':'form-control'}),
+            'sampling_rate': NumberInput(attrs={'class': 'form-control', 'step': '1'}),
+        }
+

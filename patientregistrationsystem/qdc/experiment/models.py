@@ -151,7 +151,9 @@ class Equipment(models.Model):
         ("filter", _("Filter")),
         ("eeg_electrode_net", _("EEG Electrode Net")),
         ("ad_converter", _("A/D Converter")),
-        ("tms_device", _("TMS device"))
+        ("tms_device", _("TMS device")),
+        ("eye_tracker", _("Eye tracker"))
+
     )
     manufacturer = models.ForeignKey(Manufacturer, related_name="set_of_equipment")
     equipment_type = models.CharField(null=True, blank=True, max_length=50, choices=EQUIPMENT_TYPES)
@@ -1535,3 +1537,12 @@ class PortalSelectedQuestion(models.Model):
 
     class Meta:
         unique_together = ('experiment', 'survey', 'question_code')
+
+class EyeTracker(Equipment):
+    calibration_method = models.CharField(max_length=100, null=True, blank=True)
+    sampling_rate = models.IntegerField(null=True, blank=True)
+    
+    
+    def __str__(self):
+        return self.identification
+    
