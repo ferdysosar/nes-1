@@ -8,3 +8,6 @@ patientregistrationsystem/qdc/.DS_Store
 
 _build/
 
+**/static
+launch.json
+.gitignore

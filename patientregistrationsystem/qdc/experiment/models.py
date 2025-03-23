@@ -849,7 +849,7 @@ class Component(models.Model):
     EEG = 'eeg'
     EMG = 'emg'
     TMS = 'tms'
-    EYETRACKER = 'eye_tracker'
+    EYETRACKER = 'eyetracker'
     DIGITAL_GAME_PHASE = 'digital_game_phase'
     GENERIC_DATA_COLLECTION = 'generic_data_collection'
     COMPONENT_TYPES = (
