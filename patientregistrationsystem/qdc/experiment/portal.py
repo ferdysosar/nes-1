@@ -10,7 +10,7 @@ from os import path
 from django.conf import settings
 from django.utils import translation
 
-from .models import Experiment, Group, Subject, User, EEGSetting, \
+from .models import Experiment, EyeTrackerDevice, EyeTrackerDeviceSetting, EyeTrackerSetting, Group, Subject, User, EEGSetting, \
     EMGSetting, TMSSetting, ContextTree, \
     ComponentConfiguration, EEGData, EMGData, TMSData, DigitalGamePhaseData, \
     QuestionnaireResponse, \
@@ -1061,6 +1061,79 @@ def send_tms_setting_to_portal(tms_setting: TMSSetting):
 
     return portal_tms_setting
 
+# eyetracker
+def send_eyetracker_device_setting_to_portal(portal_eyetracker_setting_id, portal_eyetracker_device_id, portal_coil_model_id,
+                                      eyetracker_device_setting: EyeTrackerDeviceSetting):
+
+    rest = RestApiClient()
+
+    if not rest.active:
+        return None
+
+    params = {'id': portal_eyetracker_setting_id,
+              'eyetracker_device': portal_eyetracker_device_id}
+
+    action_keys = ['eyetracker_setting', 'eyetracker_device_setting', 'create']
+
+    portal_participant = rest.client.action(rest.schema, action_keys, params=params)
+
+    return portal_participant
+
+
+def send_eyetracker_setting_to_portal(eyetracker_setting: EyeTrackerSetting):
+
+    rest = RestApiClient()
+
+    if not rest.active:
+        return None
+
+    # general params
+    params = {"experiment_nes_id": str(eyetracker_setting.experiment_id),
+              "name": eyetracker_setting.name,
+              "description": eyetracker_setting.description,
+              }
+
+    action_keys = ['experiments', 'eyetracker_setting', 'create']
+
+    portal_eyetracker_setting = rest.client.action(rest.schema, action_keys, params=params)
+
+    # eyetracker device setting
+    if hasattr(eyetracker_setting, "eyetracker_device_setting"):
+
+        # eyetracker device
+        portal_eyetracker_device = \
+            send_eyetracker_device_to_portal(eyetracker_setting.experiment_id,
+                                      eyetracker_setting.eyetracker_device_setting.eyetracker_device)
+
+        # eyetracker device setting
+        portal_eyetracker_device_setting = \
+            send_eyetracker_device_setting_to_portal(portal_eyetracker_setting['id'],
+                                              portal_eyetracker_device['id'],
+                                              eyetracker_setting.eyetracker_device_setting)
+
+    return portal_eyetracker_setting
+
+
+
+def send_eyetracker_device_to_portal(experiment_nes_id, eyetracker_device: EyeTrackerDevice):
+
+    rest = RestApiClient()
+
+    if not rest.active:
+        return None
+
+    params = {'experiment_nes_id': str(experiment_nes_id),
+              'manufacturer_name': eyetracker_device.manufacturer.name,
+              'equipment_type': eyetracker_device.equipment_type,
+              'identification': eyetracker_device.identification,
+              'description': eyetracker_device.description,
+              'serial_number': eyetracker_device.serial_number}
+
+    action_keys = ['experiments', 'eyetracker_device', 'create']
+
+    portal_eyetracker_device = rest.client.action(rest.schema, action_keys, params=params)
+
+    return portal_eyetracker_device
 
 def send_context_tree_to_portal(context_tree: ContextTree):
 

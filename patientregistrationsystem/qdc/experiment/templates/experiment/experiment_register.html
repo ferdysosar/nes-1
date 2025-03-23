@@ -428,6 +428,42 @@
                     {% endif %}
                 </div>
 
+
+
+                <div class="container span6 offset3 well ">
+                    <h4><span class="glyphicon glyphicon-screenshot"></span> {% trans "Eye Tracker Settings" %}</h4>
+                        {% if eyetracker_setting_list %}
+                            <div class="form-group">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>{% trans "Name" %}</th>
+                                        <th>{% trans "Description" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for eyetracker_setting in eyetracker_setting_list %}
+                                        <tr>
+                                            <td>
+                                                <a data-toggle="tooltip" data-placement="left" title="{% trans "Edit" %}" href="/experiment/eyetracker_setting/{{ eyetracker_setting.id }}">
+                                                {{ eyetracker_setting.name }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {{ eyetracker_setting.description }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                        {% if perms.experiment.add_subject and can_change %}
+                            <a href="/experiment/{{ experiment.id }}/eyetracker_setting/new" class="btn btn-primary">{% trans "Insert new" %}</a>
+                        {% endif %}
+                    </div>
+    
+
                 <div class="container span6 offset3 well ">
                 <h4><span class="glyphicon glyphicon-tree-conifer"></span> {% trans "Context trees" %}</h4>
                     {% if context_tree_list %}

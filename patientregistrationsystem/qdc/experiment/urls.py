@@ -298,6 +298,17 @@ urlpatterns = [
     url(r'^tms_setting/(?P<tms_setting_id>\d+)/coil_model/$',
         views.tms_setting_coil_model, name='tms_setting_coil_model'),
 
+
+    # eye tracker setting
+    url(r'^(?P<experiment_id>\d+)/eyetracker_setting/new/$', views.eyetracker_setting_create, name='eyetracker_setting_new'),
+    url(r'^eyetracker_setting/(?P<eyetracker_setting_id>\d+)/$', views.eyetracker_setting_view, name='eyetracker_setting_view'),
+    url(r'^eyetracker_setting/edit/(?P<eyetracker_setting_id>\d+)/$', views.eyetracker_setting_update, name='eyetracker_setting_edit'),
+    url(r'^eyetracker_setting/(?P<eyetracker_setting_id>\d+)/eyetracker_device/$',
+        views.eyetracker_setting_eyetracker_device, name='eyetracker_setting_eyetracker_device'),
+    url(r'^eyetracker_setting/(?P<eyetracker_setting_id>\d+)/eyetracker_device/edit/$',
+        views.eyetracker_setting_eyetracker_device_edit, name='eyetracker_setting_eyetracker_device_edit'),
+
+
     # context tree setting
     url(r'^(?P<experiment_id>\d+)/context_tree/new/$', views.context_tree_create, name='context_tree_new'),
     url(r'^context_tree/(?P<context_tree_id>\d+)/$', views.context_tree_view, name='context_tree_view'),
@@ -447,8 +458,8 @@ urlpatterns = [
         name='questionnaire_view'),
 
     #Eye Tracker
-    url(r'^eyetracker/list/$', views.eyetracker_list, name='eyetracker_list'),
-    url(r'^eyetracker/new/$', views.eyetracker_create, name='eyetracker_new'),
-    url(r'^eyetracker/(?P<eyetracker_id>\d+)/$', views.eyetracker_view, name='eyetracker_view'),
-    url(r'^eyetracker/edit/(?P<eyetracker_id>\d+)/$', views.eyetracker_update, name='eyetracker_edit'),
+    url(r'^eyetrackerdevice/list/$', views.eyetrackerdevice_list, name='eyetrackerdevice_list'),
+    url(r'^eyetrackerdevice/new/$', views.eyetrackerdevice_create, name='eyetrackerdevice_new'),
+    url(r'^eyetrackerdevice/(?P<eyetracker_id>\d+)/$', views.eyetrackerdevice_view, name='eyetrackerdevice_view'),
+    url(r'^eyetrackerdevice/edit/(?P<eyetracker_id>\d+)/$', views.eyetrackerdevice_update, name='eyetrackerdevice_edit'),
 ]

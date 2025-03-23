@@ -17,7 +17,7 @@ from experiment.models import Experiment, QuestionnaireResponse, SubjectOfGroup,
     MuscleSubdivision, TMS, TMSSetting, TMSDeviceSetting, Software, SoftwareVersion, CoilModel, TMSDevice, \
     EMGIntramuscularPlacement, EMGNeedlePlacement, SubjectStepData, EMGPreamplifierFilterSetting, TMSData, HotSpot, \
     CoilOrientation, DirectionOfTheInducedCurrent, TMSLocalizationSystem, DigitalGamePhase, ContextTree, \
-    DigitalGamePhaseData, Publication, GenericDataCollection, GenericDataCollectionData, ScheduleOfSending, EyeTracker
+    DigitalGamePhaseData, Publication, GenericDataCollection, GenericDataCollectionData, ScheduleOfSending, EyeTrackerDevice, EyeTrackerSetting, EyeTrackerDeviceSetting
 
 
 class ExperimentForm(ModelForm):
@@ -1261,7 +1261,7 @@ class HotSpotForm(ModelForm):
                                              'data-error': _('The coordinate must be filled.')}),
         }
 
-
+# Este es el form del tms a copiar para eye tracker http://127.0.0.1:8000/experiment/tms_setting/edit/3/
 class TMSSettingForm(ModelForm):
     class Meta:
         model = TMSSetting
@@ -1278,7 +1278,7 @@ class TMSSettingForm(ModelForm):
                                            'data-error': _('Description must be filled.')})
         }
 
-
+# Tms device setting http://127.0.0.1:8000/experiment/tms_setting/3/tms_device/
 class TMSDeviceSettingForm(ModelForm):
     class Meta:
         model = TMSDeviceSetting
@@ -1398,9 +1398,9 @@ class ResendExperimentForm(ModelForm):
                                                     'autofocus': ''}),
         }
 
-class EyeTrackerRegisterForm(ModelForm):
+class EyeTrackerDeviceRegisterForm(ModelForm):
     class Meta:
-        model = EyeTracker
+        model = EyeTrackerDevice
 
         fields = ['manufacturer', 'identification', 'description', 'serial_number', 'calibration_method', 'sampling_rate']
 
@@ -1415,3 +1415,33 @@ class EyeTrackerRegisterForm(ModelForm):
             'sampling_rate': NumberInput(attrs={'class': 'form-control', 'step': '1'}),
         }
 
+
+# Este es el form del tms a copiar para eye tracker http://127.0.0.1:8000/experiment/tms_setting/edit/3/
+class EyeTrackerSettingForm(ModelForm):
+    class Meta:
+        model = EyeTrackerSetting
+
+        fields = ['name', 'description']
+
+        widgets = {
+            'name': TextInput(attrs={'class': 'form-control',
+                                     'required': "",
+                                     'data-error': _('Name must be filled.'),
+                                     'autofocus': ''}),
+            'description': Textarea(attrs={'class': 'form-control',
+                                           'rows': '4', 'required': "",
+                                           'data-error': _('Description must be filled.')})
+        }
+
+# Tms device setting http://127.0.0.1:8000/experiment/tms_setting/3/tms_device/
+class EyeTrackerDeviceSettingForm(ModelForm):
+    class Meta:
+        model = EyeTrackerDeviceSetting
+
+        fields = ['eyetracker_setting', 'eyetracker_device']
+
+        widgets = {
+            'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
+                                        'data-error': _('Eye Tracker device is required')}),
+            'eyetracker_device': Select(attrs={'class': 'form-control'})
+        }

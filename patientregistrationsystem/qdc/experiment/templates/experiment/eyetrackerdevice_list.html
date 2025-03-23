@@ -33,7 +33,7 @@
             <ol class="breadcrumb">
                 <li><a href="/home">{% trans "Home" %}</a></li>
                 <li><a href="/experiment/setup">{% trans "Set up" %}</a></li>
-                <li class="active">{% trans "Eye Tracker" %}</li>
+                <li class="active">{% trans "Eye Tracker Device" %}</li>
             </ol>
         </div>
     </div>
@@ -41,7 +41,7 @@
     <div class="tab-pane fade in active" id="mainMenuUserTab">
         <div class="col-md-10">
             <div class="container span6 offset3 well ">
-                <h4>{% trans "Eye Tracker List" %}</h4>
+                <h4>{% trans "Eye Tracker Device List" %}</h4>
                 <div class="form-group">
                     <table class="table table-striped">
                         <thead>
@@ -58,7 +58,7 @@
                             <tr>
                                 <td>{% if perms.experiment.register_equipment %}
                                         <a data-toggle="tooltip" data-placement="left" title="{% trans "Visualize" %}"
-                                           href="/experiment/eyetracker/{{ equipment.id }}">
+                                           href="/experiment/eyetrackerdevice/{{ equipment.id }}">
                                             {{ equipment.identification }}
                                         </a>
                                     {% else %}
@@ -84,7 +84,7 @@
                 </div>
                 {% if perms.experiment.register_equipment %}
                     <div class="btn-group pull-left">
-                        <a href="/experiment/eyetracker/new/" class="btn btn-primary">{% trans "Insert new" %}</a>
+                        <a href="/experiment/eyetrackerdevice/new/" class="btn btn-primary">{% trans "Insert new" %}</a>
                     </div>
                 {% endif %}
             </div>

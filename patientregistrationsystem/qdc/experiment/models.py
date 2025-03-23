@@ -739,7 +739,6 @@ class EMGElectrodePlacementSetting(models.Model):
         super(EMGElectrodePlacementSetting, self).save(*args, **kwargs)
         self.emg_electrode_setting.emg_setting.experiment.save()
 
-
 class TMSSetting(models.Model):
     experiment = models.ForeignKey(Experiment)
     name = models.CharField(max_length=150)
@@ -753,7 +752,7 @@ class TMSSetting(models.Model):
         super(TMSSetting, self).save(*args, **kwargs)
         self.experiment.save()
 
-
+#ESte tambien
 class TMSDeviceSetting(models.Model):
     PULSE_STIMULUS_TYPES = (
         ("single_pulse", _("Single pulse")),
@@ -838,7 +837,7 @@ class DirectionOfTheInducedCurrent(models.Model):
     def __str__(self):
         return self.name
 
-
+# paso del protocolo
 class Component(models.Model):
     BLOCK = 'block'
     INSTRUCTION = 'instruction'
@@ -955,12 +954,13 @@ class EMG(Component):
     def save(self, *args, **kwargs):
         super(Component, self).save(*args, **kwargs)
 
-
+# Relaciona el paso del protocolo
 class TMS(Component):
     tms_setting = models.ForeignKey(TMSSetting)
 
     def save(self, *args, **kwargs):
         super(Component, self).save(*args, **kwargs)
+
 
 
 class InformationType(models.Model):
@@ -1275,7 +1275,7 @@ class EEGData(DataFile, DataCollection):
     def _history_user(self, value):
         self.changed_by = value
 
-
+# Data collection son los datos registrados del paciente con el TMS
 class TMSData(DataCollection):
     tms_setting = models.ForeignKey(TMSSetting)
     resting_motor_threshold = models.FloatField(null=True, blank=True, validators=[MinValueValidator(0)])
@@ -1538,11 +1538,69 @@ class PortalSelectedQuestion(models.Model):
     class Meta:
         unique_together = ('experiment', 'survey', 'question_code')
 
-class EyeTracker(Equipment):
+
+# Eye Tracker Setup
+class EyeTrackerDevice(Equipment):
     calibration_method = models.CharField(max_length=100, null=True, blank=True)
     sampling_rate = models.IntegerField(null=True, blank=True)
-    
+    #prueba = models.CharField(max_length=150, null=True)    
     
     def __str__(self):
         return self.identification
     
+
+class EyeTrackerSetting(models.Model):
+    experiment = models.ForeignKey(Experiment)
+    name = models.CharField(max_length=150)
+    description = models.TextField()
+    copied_from = models.ForeignKey('self', null=True, related_name='children')
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        super(EyeTrackerSetting, self).save(*args, **kwargs)
+        self.experiment.save()
+
+# Eye Tracker Studies
+class EyeTrackerDeviceSetting(models.Model):
+    eyetracker_setting = models.OneToOneField(EyeTrackerSetting, primary_key=True, related_name='eye_tracker_setting')
+    eyetracker_device = models.ForeignKey(EyeTrackerDevice)
+
+
+    def save(self, *args, **kwargs):
+        super(EyeTrackerDeviceSetting, self).save(*args, **kwargs)
+        self.eyetracker_setting.experiment.save()
+
+
+def get_eyetracker_brain_area_dir(instance, filename):
+    return "eyetracker_brain_area_files/%s/%s" % \
+           (instance.id, filename)
+
+
+
+class EyeTracker(Component):
+    eyetracker_setting = models.ForeignKey(EyeTrackerSetting)
+
+    def save(self, *args, **kwargs):
+        super(Component, self).save(*args, **kwargs)
+
+
+# prueba eye tracker(views)  # Data collection son los datos registrados del paciente con el TMS
+class EyeTrackerData(DataCollection):
+    eyetracker_setting = models.ForeignKey(EyeTrackerSetting)
+    description = models.TextField(null=False, blank=False)
+
+    # Audit trail - Simple History
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return self.description
+
+    @property
+    def _history_user(self):
+        return self.changed_by
+
+    @_history_user.setter
+    def _history_user(self, value):
+        self.changed_by = value

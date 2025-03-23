@@ -47,7 +47,7 @@ from experiment.import_export import ExportExperiment, ImportExperiment
 from patient.views import update_completed_status, update_acquisition_date
 from qdc.settings import MEDIA_ROOT
 from survey.survey_utils import QuestionnaireUtils, find_questionnaire_name
-from .models import Experiment, ExperimentResearcher, Subject, QuestionnaireResponse, SubjectOfGroup, Group, \
+from .models import Experiment, ExperimentResearcher, EyeTrackerData, EyeTrackerDeviceSetting, EyeTrackerSetting, Subject, QuestionnaireResponse, SubjectOfGroup, Group, \
     Component, ComponentConfiguration, Questionnaire, Task, Stimulus, Pause, Instruction, Block, \
     TaskForTheExperimenter, ClassificationOfDiseases, ResearchProject, Keyword, EEG, EMG, EEGData, FileFormat, \
     EEGSetting, Equipment, Manufacturer, Amplifier, EEGElectrodeNet, DataConfigurationTree, \
@@ -64,9 +64,9 @@ from .models import Experiment, ExperimentResearcher, Subject, QuestionnaireResp
     DigitalGamePhase, ContextTree, DigitalGamePhaseData, Publication, \
     GenericDataCollection, GenericDataCollectionData, GoalkeeperGameLog, ScheduleOfSending, \
     GoalkeeperGameConfig, GoalkeeperGameResults, EEGFile, EMGFile, AdditionalDataFile, GenericDataCollectionFile, \
-    DigitalGamePhaseFile, PortalSelectedQuestion, ComponentAdditionalFile, GoalkeeperPhase, EyeTracker
+    DigitalGamePhaseFile, PortalSelectedQuestion, ComponentAdditionalFile, GoalkeeperPhase, EyeTrackerDevice, EyeTracker
 
-from .forms import ExperimentForm, QuestionnaireResponseForm, FileForm, GroupForm, InstructionForm, \
+from .forms import ExperimentForm, EyeTrackerDeviceSettingForm, EyeTrackerSettingForm, QuestionnaireResponseForm, FileForm, GroupForm, InstructionForm, \
     ComponentForm, StimulusForm, BlockForm, ComponentConfigurationForm, ResearchProjectForm, NumberOfUsesToInsertForm, \
     EEGDataForm, EEGSettingForm, EquipmentForm, EEGForm, EEGAmplifierForm, \
     EEGAmplifierSettingForm, EEGSolutionForm, EEGFilterForm, EEGFilterSettingForm, \
@@ -84,10 +84,10 @@ from .forms import ExperimentForm, QuestionnaireResponseForm, FileForm, GroupFor
     EMGSurfacePlacementRegisterForm, EMGIntramuscularPlacementRegisterForm, EMGNeedlePlacementRegisterForm, \
     SubjectStepDataForm, EMGPreamplifierFilterSettingForm, CoilModelForm, TMSDataForm, TMSLocalizationSystemForm, \
     HotSpotForm, DigitalGamePhaseForm, ContextTreeForm, DigitalGamePhaseDataForm, PublicationForm, \
-    GenericDataCollectionForm, GenericDataCollectionDataForm, ResendExperimentForm, ResearchProjectOwnerForm, EyeTrackerRegisterForm
+    GenericDataCollectionForm, GenericDataCollectionDataForm, ResendExperimentForm, ResearchProjectOwnerForm, EyeTrackerDeviceRegisterForm
 
 from .portal import get_experiment_status_portal, \
-    send_experiment_to_portal, get_portal_status, \
+    send_experiment_to_portal, get_portal_status, send_eyetracker_setting_to_portal, \
     send_group_to_portal, send_research_project_to_portal, \
     send_experiment_end_message_to_portal, \
     send_experimental_protocol_to_portal, send_participant_to_portal, \
@@ -101,7 +101,7 @@ from .portal import get_experiment_status_portal, \
     send_tms_data_to_portal, \
     send_generic_data_collection_data_to_portal, \
     send_additional_data_to_portal, send_publication_to_portal, \
-    send_experiment_researcher_to_portal
+    send_experiment_researcher_to_portal 
 
 from .pdf import render as render_to_pdf
 
@@ -647,6 +647,7 @@ def experiment_view(request, experiment_id, template_name="experiment/experiment
     eeg_setting_list = EEGSetting.objects.filter(experiment=experiment).order_by('name')
     emg_setting_list = EMGSetting.objects.filter(experiment=experiment).order_by('name')
     tms_setting_list = TMSSetting.objects.filter(experiment=experiment).order_by('name')
+    eyetracker_setting_list = EyeTrackerSetting.objects.filter(experiment=experiment).order_by('name')
     context_tree_list = ContextTree.objects.filter(experiment=experiment).order_by('name')
     experiment_form = ExperimentForm(request.POST or None, instance=experiment)
     collaborators = ExperimentResearcher.objects.filter(experiment=experiment).order_by('channel_index')
@@ -717,6 +718,7 @@ def experiment_view(request, experiment_id, template_name="experiment/experiment
         "eeg_setting_list": eeg_setting_list,
         "emg_setting_list": emg_setting_list,
         "tms_setting_list": tms_setting_list,
+        "eyetracker_setting_list": eyetracker_setting_list,
         "context_tree_list": context_tree_list,
         "research_project": experiment.research_project,
         "experiment_status_portal": experiment_status_portal,
@@ -1071,7 +1073,7 @@ def date_of_first_data_collection(subject_of_group):
 
     return result
 
-
+#Lista de equipos dentro de un experimento http://127.0.0.1:8000/experiment/1/
 def send_all_experiments_to_portal():
     language_code = 'en'
     for schedule_of_sending in ScheduleOfSending.objects.filter(
@@ -1093,6 +1095,7 @@ def send_all_experiments_to_portal():
             list_of_emg_setting = {}
             list_of_tms_setting = {}
             list_of_context_tree = {}
+            list_of_eyetracker_setting = {}
 
             # sending experiment researchers
             for experiment_researcher in \
@@ -1161,6 +1164,22 @@ def send_all_experiments_to_portal():
                         portal_tms_setting = send_tms_setting_to_portal(tms_data.tms_setting)
                         list_of_tms_setting[tms_data.tms_setting.id] = portal_tms_setting['id']
 
+
+                # eye tracker settings (modificar para que sea de eye tracker) TMS
+                list_of_eyetracker_configuration = create_list_of_trees(group.experimental_protocol, "eyetracker")
+                for path_tree in list_of_eyetracker_configuration:
+                    component_id = ComponentConfiguration.objects.get(pk=path_tree[-1][0]).component_id
+                    eyetracker_setting = EyeTracker.objects.get(pk=component_id).eyetracker_setting
+                    if eyetracker_setting.id not in list_of_eyetracker_setting:
+                        portal_eyetracker_setting = send_eyetracker_setting_to_portal(eyetracker_setting)
+                        list_of_eyetracker_setting[eyetracker_setting.id] = portal_eyetracker_setting['id']
+
+                for eyetracker_data in EyeTrackerData.objects.filter(subject_of_group__group__experiment=group.experiment):
+                    if eyetracker_data.eyetracker_setting.id not in list_of_eyetracker_setting:
+                        portal_eyetracker_setting = send_eyetracker_setting_to_portal(eyetracker_data.eyetracker_setting)
+                        list_of_eyetracker_setting[eyetracker_data.eyetracker_setting.id] = portal_eyetracker_setting['id']
+
+
                 # context trees
                 list_of_digital_game_phase_configuration = \
                     create_list_of_trees(group.experimental_protocol, "digital_game_phase")
@@ -1170,6 +1189,7 @@ def send_all_experiments_to_portal():
                     if context_tree.id not in list_of_context_tree:
                         portal_context_tree = send_context_tree_to_portal(context_tree)
                         list_of_context_tree[context_tree.id] = portal_context_tree['id']
+
 
                 # participants
                 portal_participant_list = {}
@@ -12821,7 +12841,7 @@ def emg_electrode_setting_amplifier_edit(request, emg_electrode_setting_id,
 
     return render(request, template_name, context)
 
-
+#Para agregar un nuevo tms dentro de un experimento http://127.0.0.1:8000/experiment/1/tms_setting/new/
 @login_required
 @permission_required('experiment.add_subject')
 def tms_setting_create(request, experiment_id, template_name="experiment/tms_setting_register.html"):
@@ -13374,9 +13394,9 @@ def setup_menu(request, template_name="experiment/setup_menu.html"):
             'quantity': TMSDevice.objects.all().count()
         },
         {
-            'item': _('Eye Tracker'), 'href':
-            reverse("eyetracker_list", args=()),
-            'quantity': EyeTracker.objects.all().count()
+            'item': _('Eye Tracker Device'), 'href':
+            reverse("eyetrackerdevice_list", args=()),
+            'quantity': EyeTrackerDevice.objects.all().count()
         },
     ]
 
@@ -13398,15 +13418,15 @@ def setup_menu(request, template_name="experiment/setup_menu.html"):
 
 @login_required
 @permission_required('experiment.register_equipment')
-def eyetracker_list(request, template_name="experiment/eyetracker_list.html"):
-    return render(request, template_name, {"equipments": EyeTracker.objects.all().order_by('identification')})
+def eyetrackerdevice_list(request, template_name="experiment/eyetrackerdevice_list.html"):
+    return render(request, template_name, {"equipments": EyeTrackerDevice.objects.all().order_by('identification')})
 
 
 @login_required
 @permission_required('experiment.register_equipment')
-def eyetracker_create(request, template_name="experiment/eyetracker_register.html"):
+def eyetrackerdevice_create(request, template_name="experiment/eyetrackerdevice_register.html"):
 
-    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, initial={'equipment_type': 'eyetracker'})
+    eyetracker_form = EyeTrackerDeviceRegisterForm(request.POST or None, initial={'equipment_type': 'eyetracker'})
 
     if request.method == "POST":
 
@@ -13418,8 +13438,8 @@ def eyetracker_create(request, template_name="experiment/eyetracker_register.htm
                 eyetracker_added.equipment_type = 'eyetracker'
                 eyetracker_added.save()
 
-                messages.success(request, _('Eye Tracker created successfully.'))
-                redirect_url = reverse("eyetracker_view", args=(eyetracker_added.id,))
+                messages.success(request, _('Eye Tracker  Device created successfully.'))
+                redirect_url = reverse("eyetrackerdevice_view", args=(eyetracker_added.id,))
                 return HttpResponseRedirect(redirect_url)
 
             else:
@@ -13439,10 +13459,10 @@ def eyetracker_create(request, template_name="experiment/eyetracker_register.htm
 
 @login_required
 @permission_required('experiment.register_equipment')
-def eyetracker_update(request, eyetracker_id, template_name="experiment/eyetracker_register.html"):
-    eyetracker = get_object_or_404(EyeTracker, pk=eyetracker_id)
+def eyetrackerdevice_update(request, eyetracker_id, template_name="experiment/eyetrackerdevice_register.html"):
+    eyetracker = get_object_or_404(EyeTrackerDevice, pk=eyetracker_id)
 
-    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, instance=eyetracker)
+    eyetracker_form = EyeTrackerDeviceRegisterForm(request.POST or None, instance=eyetracker)
 
     if request.method == "POST":
         if request.POST['action'] == "save":
@@ -13451,11 +13471,11 @@ def eyetracker_update(request, eyetracker_id, template_name="experiment/eyetrack
                 # if eyetracker_form.has_changed() or changed_tags:
                 if eyetracker_form.has_changed():
                     eyetracker_form.save()
-                    messages.success(request, _('Eye Tracker updated successfully.'))
+                    messages.success(request, _('Eye Tracker Device updated successfully.'))
                 else:
                     messages.success(request, _('There is no changes to save.'))
 
-                redirect_url = reverse("eyetracker_view", args=(eyetracker.id,))
+                redirect_url = reverse("eyetrackerdevice_view", args=(eyetracker.id,))
                 return HttpResponseRedirect(redirect_url)
 
     context = {"equipment": eyetracker,
@@ -13468,10 +13488,10 @@ def eyetracker_update(request, eyetracker_id, template_name="experiment/eyetrack
 
 @login_required
 @permission_required('experiment.register_equipment')
-def eyetracker_view(request, eyetracker_id, template_name="experiment/eyetracker_register.html"):
-    eyetracker = get_object_or_404(EyeTracker, pk=eyetracker_id)
+def eyetrackerdevice_view(request, eyetracker_id, template_name="experiment/eyetrackerdevice_register.html"):
+    eyetracker = get_object_or_404(EyeTrackerDevice, pk=eyetracker_id)
 
-    eyetracker_form = EyeTrackerRegisterForm(request.POST or None, instance=eyetracker)
+    eyetracker_form = EyeTrackerDeviceRegisterForm(request.POST or None, instance=eyetracker)
 
     for field in eyetracker_form.fields:
         eyetracker_form.fields[field].widget.attrs['disabled'] = True
@@ -13481,11 +13501,11 @@ def eyetracker_view(request, eyetracker_id, template_name="experiment/eyetracker
 
             try:
                 eyetracker.delete()
-                messages.success(request, _('Eye Tracker removed successfully.'))
-                return redirect('eyetracker_list')
+                messages.success(request, _('Eye Tracker Device removed successfully.'))
+                return redirect('eyetrackerdevice_list')
             except ProtectedError:
-                messages.error(request, _("Error trying to delete Eye Tracker."))
-                redirect_url = reverse("eyetracker_view", args=(eyetracker_id,))
+                messages.error(request, _("Error trying to delete Eye Tracker Device."))
+                redirect_url = reverse("eyetrackerdevice_view", args=(eyetracker_id,))
                 return HttpResponseRedirect(redirect_url)
 
     context = {"can_change": True,
@@ -13496,22 +13516,222 @@ def eyetracker_view(request, eyetracker_id, template_name="experiment/eyetracker
     return render(request, template_name, context)
 
 
-def search_cid10_ajax(request):
-    cid_10_list = ''
+#Para agregar un nuevo tms dentro de un experimento http://127.0.0.1:8000/experiment/1/tms_setting/new/
+@login_required
+@permission_required('experiment.add_subject')
+def eyetracker_setting_create(request, experiment_id, template_name="experiment/eyetracker_setting_register.html"):
+    experiment = get_object_or_404(Experiment, pk=experiment_id)
+
+    check_can_change(request.user, experiment.research_project)
+
+    eyetracker_setting_form = EyeTrackerSettingForm(request.POST or None)
 
     if request.method == "POST":
-        search_text = request.POST['search_text']
-        group_id = request.POST['group_id']
+        if request.POST['action'] == "save":
+            if eyetracker_setting_form.is_valid():
+                eyetracker_setting_added = eyetracker_setting_form.save(commit=False)
+                eyetracker_setting_added.experiment_id = experiment_id
+                eyetracker_setting_added.save()
 
-        if search_text:
-            cid_10_list = ClassificationOfDiseases.objects.filter(
-                Q(abbreviated_description__icontains=search_text)
-                | Q(description__icontains=search_text)
-                | Q(code__icontains=search_text))
+                messages.success(request, _('Eye Tracker setting included successfully.'))
 
-        if group_id:
-            return render_to_response(
-                'experiment/ajax_cid10.html', {'cid_10_list': cid_10_list, 'group_id': group_id})
-        else:
-            return render_to_response(
-                'export/diagnoses.html', {'classification_of_diseases_list': cid_10_list})
+                redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting_added.id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"eyetracker_setting_form": eyetracker_setting_form,
+               "creating": True,
+               "editing": True,
+               "experiment": experiment
+               }
+
+    return render(request, template_name, context)
+
+@login_required
+@permission_required('experiment.view_researchproject')
+def eyetracker_setting_view(request, eyetracker_setting_id, template_name="experiment/eyetracker_setting_register.html"):
+
+    eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=eyetracker_setting_id)
+    eyetracker_setting_form = EyeTrackerSettingForm(request.POST or None, instance=eyetracker_setting)
+
+    for field in eyetracker_setting_form.fields:
+        eyetracker_setting_form.fields[field].widget.attrs['disabled'] = True
+
+    can_change = get_can_change(request.user, eyetracker_setting.experiment.research_project)
+
+    if request.method == "POST":
+        if can_change:
+            if request.POST['action'] == "remove":
+
+                experiment_id = eyetracker_setting.experiment_id
+
+                eyetracker_setting.delete()
+
+                messages.success(request, _('Eye Tracker setting was removed successfully.'))
+
+                redirect_url = reverse("experiment_view", args=(experiment_id,))
+                return HttpResponseRedirect(redirect_url)
+
+            if request.POST['action'][:7] == "remove-":
+                # If action starts with 'remove-' it means that a setting should be removed from the eyetracker_setting.
+                eyetracker_setting_type = request.POST['action'][7:]
+
+                setting_to_be_deleted = None
+
+                if eyetracker_setting_type == "eyetracker_device":
+                    setting_to_be_deleted = get_object_or_404(EyeTrackerDeviceSetting, pk=eyetracker_setting_id)
+
+                if setting_to_be_deleted:
+                    setting_to_be_deleted.delete()
+
+                messages.success(request, _('Setting was removed successfully.'))
+
+                redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting.id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"can_change": can_change,
+               "eyetracker_setting_form": eyetracker_setting_form,
+               "experiment": eyetracker_setting.experiment,
+               "eyetracker_setting": eyetracker_setting,
+               "editing": False
+               }
+
+    return render(request, template_name, context)
+
+
+@login_required
+@permission_required('experiment.change_experiment')
+def eyetracker_setting_update(request, eyetracker_setting_id, template_name="experiment/eyetracker_setting_register.html"):
+    eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=eyetracker_setting_id)
+
+    check_can_change(request.user, eyetracker_setting.experiment.research_project)
+
+    eyetracker_setting_form = EyeTrackerSettingForm(request.POST or None, instance=eyetracker_setting)
+
+    if request.method == "POST":
+        if request.POST['action'] == "save":
+            if eyetracker_setting_form.is_valid():
+
+                if eyetracker_setting_form.has_changed():
+                    eyetracker_setting_form.save()
+                    messages.success(request, _('Eye Tracker setting updated successfully.'))
+                else:
+                    messages.success(request, _('There is no changes to save.'))
+
+                redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting_id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"eyetracker_setting_form": eyetracker_setting_form,
+               "editing": True,
+               "experiment": eyetracker_setting.experiment,
+               "eyetracker_setting": eyetracker_setting
+               }
+
+    return render(request, template_name, context)
+
+
+
+
+@login_required
+@permission_required('experiment.change_experiment')
+def eyetracker_setting_eyetracker_device(request, eyetracker_setting_id,
+                           template_name="experiment/eyetracker_setting_eyetracker_device.html"):
+
+    eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=eyetracker_setting_id)
+
+    can_change = get_can_change(request.user, eyetracker_setting.experiment.research_project)
+
+    creating = False
+
+    list_of_manufacturers = Manufacturer.objects.filter(set_of_equipment__equipment_type="eyetracker_device").distinct()
+
+    if hasattr(eyetracker_setting, 'eyetracker_device_setting'):
+
+        eyetracker_device_setting = EyeTrackerDeviceSetting.objects.get(eyetracker_setting=eyetracker_setting)
+
+        eyetracker_device_setting_form = EyeTrackerDeviceSettingForm(request.POST or None, instance=eyetracker_device_setting)
+
+        eyetracker_device_selected = eyetracker_device_setting.eyetracker_device
+
+        equipment_form = EquipmentForm(request.POST or None, instance=eyetracker_device_selected)
+
+
+        for field in eyetracker_device_setting_form.fields:
+            eyetracker_device_setting_form.fields[field].widget.attrs['disabled'] = True
+
+    else:
+        creating = True
+        eyetracker_device_setting_form = EyeTrackerDeviceSettingForm(request.POST or None)
+        equipment_form = EquipmentForm(request.POST or None)
+
+    if request.method == "POST":
+        if request.POST['action'] == "save":
+
+            if eyetracker_device_setting_form.is_valid():
+
+                if eyetracker_device_setting_form.has_changed():
+
+                    new_setting = eyetracker_device_setting_form.save(commit=False)
+                    new_setting.eyetracker_setting = eyetracker_setting
+                    new_setting.save()
+
+                    messages.success(request, _('Eye Tracker device setting created successfully.'))
+
+                    redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting_id,))
+                    return HttpResponseRedirect(redirect_url)
+
+    context = {"creating": creating,
+               "editing": False,
+               "can_change": can_change,
+               "eyetracker_setting": eyetracker_setting,
+               "eyetracker_device_setting_form": eyetracker_device_setting_form,
+               "equipment_form": equipment_form,
+               "manufacturer_list": list_of_manufacturers
+               }
+
+    return render(request, template_name, context)
+
+
+@login_required
+@permission_required('experiment.change_experiment')
+def eyetracker_setting_eyetracker_device_edit(request, eyetracker_setting_id, template_name="experiment/eyetracker_setting_eyetracker_device.html"):
+
+    eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=eyetracker_setting_id)
+
+    check_can_change(request.user, eyetracker_setting.experiment.research_project)
+
+    eyetracker_device_setting = eyetracker_setting.eyetracker_device_setting
+    eyetracker_device_setting_form = EyeTrackerDeviceSettingForm(request.POST or None, instance=eyetracker_device_setting)
+
+    eyetracker_device_selected = eyetracker_device_setting.eyetracker_device
+
+    equipment_form = EquipmentForm(request.POST or None, instance=eyetracker_device_selected)
+
+    list_of_manufacturers = Manufacturer.objects.filter(set_of_equipment__equipment_type="eyetracker_device").distinct()
+
+    if request.method == "POST":
+
+        if request.POST['action'] == "save":
+
+            if eyetracker_device_setting_form.is_valid():
+
+                if eyetracker_device_setting_form.has_changed():
+                    eyetracker_device_setting_form.save()
+
+                    messages.success(request, _('Eye Tracker device setting updated successfully.'))
+                else:
+                    messages.success(request, _('There is no changes to save.'))
+
+                redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting_id,))
+                return HttpResponseRedirect(redirect_url)
+
+    context = {"creating": False,
+               "editing": True,
+               "can_change": True,
+               "eyetracker_setting": eyetracker_setting,
+               "eyetracker_device_setting_form": eyetracker_device_setting_form,
+               "equipment_form": equipment_form,
+               "manufacturer_list": list_of_manufacturers
+               }
+
+    return render(request, template_name, context)
+
