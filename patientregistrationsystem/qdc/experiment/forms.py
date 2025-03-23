@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.encoding import smart_text
 from django.utils.translation import gettext_lazy as _
 
-from experiment.models import Experiment, QuestionnaireResponse, SubjectOfGroup, Group, Component, Stimulus, Block, \
+from experiment.models import Experiment, EyeTracker, QuestionnaireResponse, SubjectOfGroup, Group, Component, Stimulus, Block, \
     Instruction, ComponentConfiguration, ResearchProject, EEGData, EEGSetting, Equipment, EEG, EMG, Amplifier, \
     EEGAmplifierSetting, EEGSolution, EEGFilterSetting, FilterType, EEGElectrodeLocalizationSystem, \
     EEGCapSize, EEGElectrodeCap, EEGElectrodePosition, Manufacturer, ElectrodeModel, EEGElectrodeNet, Material, \
@@ -1444,4 +1444,14 @@ class EyeTrackerDeviceSettingForm(ModelForm):
             'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
                                         'data-error': _('Eye Tracker device is required')}),
             'eyetracker_device': Select(attrs={'class': 'form-control'})
+        }
+
+class EyeTrackerForm(ModelForm):
+    class Meta:
+        model = EyeTracker
+        fields = ['eyetracker_setting']
+
+        widgets = {
+            'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
+                                         'data-error': _('Eye Tracker setting type must be filled.')})
         }

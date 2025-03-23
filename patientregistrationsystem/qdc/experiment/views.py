@@ -66,7 +66,7 @@ from .models import Experiment, ExperimentResearcher, EyeTrackerData, EyeTracker
     GoalkeeperGameConfig, GoalkeeperGameResults, EEGFile, EMGFile, AdditionalDataFile, GenericDataCollectionFile, \
     DigitalGamePhaseFile, PortalSelectedQuestion, ComponentAdditionalFile, GoalkeeperPhase, EyeTrackerDevice, EyeTracker
 
-from .forms import ExperimentForm, EyeTrackerDeviceSettingForm, EyeTrackerSettingForm, QuestionnaireResponseForm, FileForm, GroupForm, InstructionForm, \
+from .forms import ExperimentForm, EyeTrackerDeviceSettingForm, EyeTrackerForm, EyeTrackerSettingForm, QuestionnaireResponseForm, FileForm, GroupForm, InstructionForm, \
     ComponentForm, StimulusForm, BlockForm, ComponentConfigurationForm, ResearchProjectForm, NumberOfUsesToInsertForm, \
     EEGDataForm, EEGSettingForm, EquipmentForm, EEGForm, EEGAmplifierForm, \
     EEGAmplifierSettingForm, EEGSolutionForm, EEGFilterForm, EEGFilterSettingForm, \
@@ -133,6 +133,7 @@ icon_class = {
     'eeg': 'glyphicon glyphicon-flash',
     'emg': 'glyphicon glyphicon-stats',
     'tms': 'glyphicon glyphicon-magnet',
+    'eyetracker':'glyphicon glyphicon-screenshot',
     'experimental_protocol': 'glyphicon glyphicon-tasks',
     'digital_game_phase': 'glyphicon glyphicon-play-circle',
     'generic_data_collection': 'glyphicon glyphicon-file',
@@ -144,6 +145,7 @@ data_type_name = {
     'eeg': 'EEG',
     'emg': 'EMG',
     'tms': 'TMS',
+    'eyetracker': 'eye_tracker',
     'digital_game_phase': _('goalkeeper game'),
     'generic_data_collection': _('generic data collection'),
     'questionnaire': _('questionnaire')
@@ -8607,6 +8609,8 @@ def get_subgraph(tree, node_identifier=""):
                 color_node = "#f1cbff"
             elif component.component_type == "tms":
                 color_node = "#fe8181"
+            elif component.component_type == "eyetracker":
+                color_node = "#6495ED"
             elif component.component_type == "digital_game_phase":
                 color_node = "#80ced6"
             elif component.component_type == "generic_data_collection":
@@ -8793,6 +8797,8 @@ def get_component_attributes(component, language_code):
     elif component.component_type == 'emg':
         specific_attributes = []
     elif component.component_type == 'tms':
+        specific_attributes = []
+    elif component.component_type == 'eyetracker':
         specific_attributes = []
     elif component.component_type == 'digital_game_phase':
         specific_attributes = []
@@ -9460,6 +9466,8 @@ def component_create(request, experiment_id, component_type):
         specific_form = EMGForm(request.POST or None, initial={'experiment': experiment})
     elif component_type == 'tms':
         specific_form = TMSForm(request.POST or None, initial={'experiment': experiment})
+    elif component_type == 'eyetracker':
+        specific_form = EyeTrackerForm(request.POST or None, initial={'experiment': experiment})
     elif component_type == 'questionnaire':
         questionnaires_list = Survey.objects.all()
     elif component_type == 'block':
@@ -10616,6 +10624,11 @@ def create_component(component, new_experiment, orig_and_clone):
         tms = get_object_or_404(TMS, pk=component.id)
         clone = TMS(tms_setting_id=orig_and_clone['tms_setting'][tms.tms_setting_id])
 
+    elif component_type == 'eyetracker':
+        eyetracker = get_object_or_404(EyeTracker, pk=component.id)
+        clone = EyeTracker(eyetraker_setting_id=orig_and_clone['eyetracker_setting'][eyetracker.eyetracker_setting_id])
+
+
     elif component_type == 'instruction':
         instruction = get_object_or_404(Instruction, pk=component.id)
         clone = Instruction(text=instruction.text)
@@ -10961,6 +10974,9 @@ def component_update(request, path_of_the_components):
     elif component_type == 'tms':
         tms = get_object_or_404(TMS, pk=component.id)
         specific_form = TMSForm(request.POST or None, instance=tms, initial={'experiment': experiment})
+    elif component_type == 'eyetracker':
+        tms = get_object_or_404(EyeTracker, pk=component.id)
+        specific_form = EyeTrackerForm(request.POST or None, instance=tms, initial={'experiment': experiment})
     elif component_type == 'block':
         block = get_object_or_404(Block, pk=component.id)
         specific_form = BlockForm(request.POST or None, instance=block)
@@ -11243,6 +11259,8 @@ def component_add_new(request, path_of_the_components, component_type):
         specific_form = EMGForm(request.POST or None, initial={'experiment': experiment})
     elif component_type == 'tms':
         specific_form = TMSForm(request.POST or None, initial={'experiment': experiment})
+    elif component_type == 'eyetracker':
+        specific_form = EyeTrackerForm(request.POST or None, initial={'experiment': experiment})
     elif component_type == 'questionnaire':
         questionnaires_list = Survey.objects.all()
     elif component_type == 'block':
@@ -11418,7 +11436,9 @@ def component_reuse(request, path_of_the_components, component_id):
         specific_form = EMGForm(request.POST or None, instance=emg, initial={'experiment': experiment})
     elif component_type == 'tms':
         tms = get_object_or_404(TMS, pk=component_to_add.id)
-        specific_form = TMSForm(request.POST or None, instance=tms, initial={'experiment': experiment})
+    elif component_type == 'eyetracker':
+        tms = get_object_or_404(EyeTracker, pk=component_to_add.id)
+        specific_form = EyeTrackerForm(request.POST or None, instance=tms, initial={'experiment': experiment})
     elif component_type == 'questionnaire':
         questionnaire = get_object_or_404(Questionnaire, pk=component_to_add.id)
         questionnaire_id = questionnaire.survey.lime_survey_id

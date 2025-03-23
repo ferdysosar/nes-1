@@ -152,7 +152,7 @@ class Equipment(models.Model):
         ("eeg_electrode_net", _("EEG Electrode Net")),
         ("ad_converter", _("A/D Converter")),
         ("tms_device", _("TMS device")),
-        ("eye_tracker", _("Eye tracker"))
+        ("eyetracker_device", _("Eye tracker device"))
 
     )
     manufacturer = models.ForeignKey(Manufacturer, related_name="set_of_equipment")
@@ -849,6 +849,7 @@ class Component(models.Model):
     EEG = 'eeg'
     EMG = 'emg'
     TMS = 'tms'
+    EYETRACKER = 'eye_tracker'
     DIGITAL_GAME_PHASE = 'digital_game_phase'
     GENERIC_DATA_COLLECTION = 'generic_data_collection'
     COMPONENT_TYPES = (
@@ -862,6 +863,7 @@ class Component(models.Model):
         (EEG, _('EEG')),
         (EMG, _('EMG')),
         (TMS, _('TMS')),
+        (EYETRACKER, _('eyetracker')),
         (DIGITAL_GAME_PHASE, _('Goalkeeper game phase')),
         (GENERIC_DATA_COLLECTION, _('Generic data collection')),
     )
@@ -1542,12 +1544,12 @@ class PortalSelectedQuestion(models.Model):
 # Eye Tracker Setup
 class EyeTrackerDevice(Equipment):
     calibration_method = models.CharField(max_length=100, null=True, blank=True)
-    sampling_rate = models.IntegerField(null=True, blank=True)
-    #prueba = models.CharField(max_length=150, null=True)    
+    sampling_rate = models.IntegerField(null=True, blank=True)  
     
     def __str__(self):
         return self.identification
     
+
 
 class EyeTrackerSetting(models.Model):
     experiment = models.ForeignKey(Experiment)
@@ -1562,6 +1564,7 @@ class EyeTrackerSetting(models.Model):
         super(EyeTrackerSetting, self).save(*args, **kwargs)
         self.experiment.save()
 
+
 # Eye Tracker Studies
 class EyeTrackerDeviceSetting(models.Model):
     eyetracker_setting = models.OneToOneField(EyeTrackerSetting, primary_key=True, related_name='eye_tracker_setting')
@@ -1571,12 +1574,6 @@ class EyeTrackerDeviceSetting(models.Model):
     def save(self, *args, **kwargs):
         super(EyeTrackerDeviceSetting, self).save(*args, **kwargs)
         self.eyetracker_setting.experiment.save()
-
-
-def get_eyetracker_brain_area_dir(instance, filename):
-    return "eyetracker_brain_area_files/%s/%s" % \
-           (instance.id, filename)
-
 
 
 class EyeTracker(Component):
