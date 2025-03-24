@@ -849,7 +849,7 @@ class Component(models.Model):
     EEG = 'eeg'
     EMG = 'emg'
     TMS = 'tms'
-    EYETRACKER = 'eye_tracker'
+    EYETRACKER = 'eyetracker'
     DIGITAL_GAME_PHASE = 'digital_game_phase'
     GENERIC_DATA_COLLECTION = 'generic_data_collection'
     COMPONENT_TYPES = (
@@ -863,7 +863,7 @@ class Component(models.Model):
         (EEG, _('EEG')),
         (EMG, _('EMG')),
         (TMS, _('TMS')),
-        (EYETRACKER, _('eyetracker')),
+        (EYETRACKER, _('Eye Tracker')),
         (DIGITAL_GAME_PHASE, _('Goalkeeper game phase')),
         (GENERIC_DATA_COLLECTION, _('Generic data collection')),
     )

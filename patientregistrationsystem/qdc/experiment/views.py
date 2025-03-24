@@ -145,7 +145,7 @@ data_type_name = {
     'eeg': 'EEG',
     'emg': 'EMG',
     'tms': 'TMS',
-    'eyetracker': 'eye_tracker',
+    'eyetracker': 'eyetracker',
     'digital_game_phase': _('goalkeeper game'),
     'generic_data_collection': _('generic data collection'),
     'questionnaire': _('questionnaire')
