@@ -863,7 +863,7 @@ class Component(models.Model):
         (EEG, _('EEG')),
         (EMG, _('EMG')),
         (TMS, _('TMS')),
-        (EYETRACKER, _('eyetracker')),
+        (EYETRACKER, _('Eye Tracker')),
         (DIGITAL_GAME_PHASE, _('Goalkeeper game phase')),
         (GENERIC_DATA_COLLECTION, _('Generic data collection')),
     )
