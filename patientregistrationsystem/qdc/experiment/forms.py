@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.encoding import smart_text
 from django.utils.translation import gettext_lazy as _
 
-from experiment.models import Experiment, EyeTracker, QuestionnaireResponse, SubjectOfGroup, Group, Component, Stimulus, Block, \
+from experiment.models import Experiment, EyeTracker, EyeTrackerData, QuestionnaireResponse, SubjectOfGroup, Group, Component, Stimulus, Block, \
     Instruction, ComponentConfiguration, ResearchProject, EEGData, EEGSetting, Equipment, EEG, EMG, Amplifier, \
     EEGAmplifierSetting, EEGSolution, EEGFilterSetting, FilterType, EEGElectrodeLocalizationSystem, \
     EEGCapSize, EEGElectrodeCap, EEGElectrodePosition, Manufacturer, ElectrodeModel, EEGElectrodeNet, Material, \
@@ -443,7 +443,7 @@ class EquipmentForm(ModelForm):
         fields = ['description']
 
         widgets = {
-            'description': Textarea(attrs={'class': 'form-control', 'rows': '4', 'disabled': ''})
+            'description': Textarea(attrs={'class': 'form-control', 'id': 'id_description', 'rows': '4', 'disabled': ''})
         }
 
 
@@ -1455,3 +1455,33 @@ class EyeTrackerForm(ModelForm):
             'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
                                          'data-error': _('Eye Tracker setting type must be filled.')})
         }
+
+class EyeTrackerDataForm(ModelForm):
+    class Meta:
+        model = EyeTrackerData
+
+        fields = ['date', 'time', 'eyetracker_setting', 'description']
+
+        widgets = {
+            'date': DateInput(format=_("%m/%d/%Y"),
+                              attrs={'class': 'form-control datepicker', 'placeholder': _('mm/dd/yyyy'),
+                                     'required': "",
+                                     'data-error': _("Fill date must be filled.")}, ),
+            'time': TimeInput(attrs={'class': 'form-control', 'placeholder': 'HH:mm:ss'}),
+            'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
+                                         'data-error': _('EyeTracker setting type must be filled.')}),
+            'description': Textarea(attrs={'class': 'form-control',
+                                           'rows': '4', 'required': "",
+                                           'data-error': _('Description must be filled.')}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(EyeTrackerDataForm, self).__init__(*args, **kwargs)
+
+        initial = kwargs.get('initial')
+        if initial and 'experiment' in initial:
+            self.fields['eyetracker_setting'].queryset = EyeTrackerSetting.objects.filter(experiment=initial['experiment'])
+        if initial and 'eyetracker_setting' in initial:
+            eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=initial['eyetracker_setting'])
+
+

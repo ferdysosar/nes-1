@@ -63,6 +63,13 @@
         </div>
     </div>
 
+    <script>
+        console.log("Rendered HTML:");
+        console.log(document.getElementById("id_manufacturer"));
+        console.log(document.getElementById("id_eyetracker_device"));
+        console.log(document.getElementById("id_description"));
+      </script>
+
     <div class="tab-pane fade in active" id="menuUserTab">
         <div class="col-md-10">
             <div class="container span6 offset3 well">
@@ -87,14 +94,24 @@
 
                 <div class="row">
                     <div class="col-xs-12 col-sm-12">
-                        <div class="form-group">
-                            <label class="control-label">{% trans "Eye Tracker device" %} </label>
-                            {{ eyetracker_device_setting_form.eyetracker_device }}
-                            <div class="help-block with-errors"></div>
+                      <div class="form-group">
+                        <label class="control-label">{% trans "Eye Tracker device" %}</label>
+                  
+                            <!-- Explicit select element if Django form field doesn't render it as <select> -->
+                            <select class="form-control" name="eyetracker_device" id="id_eyetracker_device" {% if not editing and not creating %}disabled{% endif %}>
+                                <option value="">---------</option>
+                                {% for device in eyetracker_device_list %}
+                                    <option value="{{ device.id }}"
+                                    {% if device.id == eyetracker_device_setting_form.instance.eyetracker_device_id %}selected{% endif %}>
+                                    {{ device.identification }}
+                                    </option>
+                                {% endfor %}
+                            </select>
 
-                        </div>
+                        <div class="help-block with-errors"></div>
+                      </div>
                     </div>
-                </div>
+                  </div>
 
                 <div class="row">
                     <div class="col-xs-12 col-sm-12">

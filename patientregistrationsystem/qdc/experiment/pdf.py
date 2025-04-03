@@ -3,7 +3,6 @@ import os
 from html import escape
 from xhtml2pdf import pisa
 from django.http import HttpResponse
-from django.template import Context
 from django.template.loader import get_template
 from io import BytesIO
 
@@ -35,8 +34,7 @@ def fetch_resources(uri, rel):
 
 def render(template_src, context_dict, css_source=None):
     template = get_template(template_src)
-    context = Context(context_dict)
-    html = template.render(context)
+    html = template.render(context_dict)
     result = BytesIO()
 
     if css_source:
