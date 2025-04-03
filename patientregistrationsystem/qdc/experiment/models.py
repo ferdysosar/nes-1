@@ -1567,7 +1567,7 @@ class EyeTrackerSetting(models.Model):
 
 # Eye Tracker Studies
 class EyeTrackerDeviceSetting(models.Model):
-    eyetracker_setting = models.OneToOneField(EyeTrackerSetting, primary_key=True, related_name='eye_tracker_setting')
+    eyetracker_setting = models.OneToOneField(EyeTrackerSetting, primary_key=True, related_name='eyetracker_setting')
     eyetracker_device = models.ForeignKey(EyeTrackerDevice)
 
 

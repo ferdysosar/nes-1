@@ -391,6 +391,14 @@ urlpatterns = [
     url(r'^tms_data/(?P<tms_data_id>\d+)/position_setting_view/$', views.tms_data_position_setting_view,
         name='tms_data_position_setting_view'),
 
+    # subject + eyetracker_data
+    url(r'^group/(?P<group_id>\d+)/subject/(?P<subject_id>\d+)/eyetracker/$',
+        views.subject_eyetracker_view, name='subject_eyetracker_view'),
+    url(r'^group/(?P<group_id>\d+)/subject/(?P<subject_id>\d+)/eyetracker/(?P<eyetracker_configuration_id>[0-9-]+)/add_eyetracker_data/$',
+        views.subject_eyetracker_data_create, name='subject_eyetracker_data_create'),
+    url(r'^eyetracker_data/(?P<eyetracker_data_id>\d+)/$', views.eyetracker_data_view, name='eyetracker_data_view'),
+    url(r'^eyetracker_data/edit/(?P<eyetracker_data_id>\d+)/(?P<tab>\d+)/$', views.eyetracker_data_edit, name='eyetracker_data_edit'),
+
     # data collection
     url(r'^group/(?P<group_id>\d+)/data_collection_manage/'
         r'(?P<path_of_configuration>[0-9-]+)/(?P<data_type>\w+)/$',
