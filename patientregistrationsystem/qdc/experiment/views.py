@@ -13691,69 +13691,67 @@ def eyetracker_setting_update(request, eyetracker_setting_id, template_name="exp
 @login_required
 @permission_required('experiment.change_experiment')
 def eyetracker_setting_eyetracker_device(request, eyetracker_setting_id,
-                           template_name="experiment/eyetracker_setting_eyetracker_device.html"):
+                                         template_name="experiment/eyetracker_setting_eyetracker_device.html"):
 
     eyetracker_setting = get_object_or_404(EyeTrackerSetting, pk=eyetracker_setting_id)
     can_change = get_can_change(request.user, eyetracker_setting.experiment.research_project)
-
     creating = False
-    editing = False
 
-    # Get manufacturers for the dropdown
     list_of_manufacturers = Manufacturer.objects.filter(set_of_equipment__equipment_type="eyetracker").distinct()
+    selected_manufacturer_id = request.POST.get('manufacturer') if request.method == 'POST' else None
 
-    # Check if this eyetracker_setting has a device already
-    try:
+    if hasattr(eyetracker_setting, 'eyetracker_device_setting'):
         eyetracker_device_setting = EyeTrackerDeviceSetting.objects.get(eyetracker_setting=eyetracker_setting)
-        editing = True
-    except EyeTrackerDeviceSetting.DoesNotExist:
-        eyetracker_device_setting = None
-        creating = True
-
-    if eyetracker_device_setting:
-        # We're editing an existing setting
         eyetracker_device_setting_form = EyeTrackerDeviceSettingForm(request.POST or None, instance=eyetracker_device_setting)
         eyetracker_device_selected = eyetracker_device_setting.eyetracker_device
         equipment_form = EquipmentForm(request.POST or None, instance=eyetracker_device_selected)
 
-        # Disable fields in view-only mode
-        if not can_change:
-            for field in eyetracker_device_setting_form.fields:
-                eyetracker_device_setting_form.fields[field].widget.attrs['disabled'] = True
+        for field in eyetracker_device_setting_form.fields:
+            eyetracker_device_setting_form.fields[field].widget.attrs['disabled'] = True
+
     else:
-        # Creating a new setting
+        creating = True
         eyetracker_device_setting_form = EyeTrackerDeviceSettingForm(request.POST or None)
         equipment_form = EquipmentForm(request.POST or None)
 
-    # Load all devices for the initial <select> field (optional; you'll override with JS anyway)
-    eyetracker_device_list = Equipment.objects.filter(equipment_type="eyetracker")
+        # 🔍 Filter devices by selected manufacturer (if any)
+        if selected_manufacturer_id:
+            filtered_devices = EyeTrackerDevice.objects.filter(manufacturer_id=selected_manufacturer_id)
+            eyetracker_device_setting_form.fields['eyetracker_device'].queryset = filtered_devices
+        else:
+            eyetracker_device_setting_form.fields['eyetracker_device'].queryset = EyeTrackerDevice.objects.none()
 
+    print("Form valid:", eyetracker_device_setting_form.is_valid())
+    print("Form errors:", eyetracker_device_setting_form.errors.as_data())
+    print("POST data:", request.POST)
+    
     if request.method == "POST":
         if request.POST.get('action') == "save":
+            print(eyetracker_device_setting_form.is_valid())
             if eyetracker_device_setting_form.is_valid():
                 if eyetracker_device_setting_form.has_changed():
+                    print("has changed")
                     new_setting = eyetracker_device_setting_form.save(commit=False)
                     new_setting.eyetracker_setting = eyetracker_setting
                     new_setting.save()
 
                     messages.success(request, _('Eye Tracker device setting created successfully.'))
-
                     redirect_url = reverse("eyetracker_setting_view", args=(eyetracker_setting_id,))
                     return HttpResponseRedirect(redirect_url)
-    print("Devices:", eyetracker_device_list)
 
     context = {
         "creating": creating,
-        "editing": editing,
+        "editing": False,
         "can_change": can_change,
         "eyetracker_setting": eyetracker_setting,
         "eyetracker_device_setting_form": eyetracker_device_setting_form,
         "equipment_form": equipment_form,
         "manufacturer_list": list_of_manufacturers,
-        "eyetracker_device_list": eyetracker_device_list,
+        "selected_manufacturer_id": selected_manufacturer_id,
     }
 
     return render(request, template_name, context)
+
 
 
 @login_required
@@ -13771,7 +13769,7 @@ def eyetracker_setting_eyetracker_device_edit(request, eyetracker_setting_id, te
 
     equipment_form = EquipmentForm(request.POST or None, instance=eyetracker_device_selected)
 
-    list_of_manufacturers = Manufacturer.objects.filter(set_of_equipment__equipment_type="eyetracker_device").distinct()
+    list_of_manufacturers = Manufacturer.objects.filter(set_of_equipment__equipment_type="eyetracker").distinct()
 
     if request.method == "POST":
 
