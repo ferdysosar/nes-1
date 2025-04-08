@@ -379,4 +379,23 @@
     <script src="{% static 'quiz/js/phone.js' %}"></script>
     <script src="{% static 'quiz/js/cep.js' %}"></script>
     <script src="{% static 'quiz/js/patient_personal_data.js' %}"></script>
+
+    <!-- Include Bootstrap Datepicker CSS & JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js"></script>
+
+    <!-- Initialize the datepicker -->
+    <script>
+        $(function () {
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',     // Matches form field format
+                autoclose: true,
+                todayHighlight: true,
+                endDate: '0d',            // Prevent future dates
+                startView: 2,             // Show year view first
+                maxViewMode: 2            // Enable jumping by decade
+            });
+        });
+    </script>
 {% endblock %}
