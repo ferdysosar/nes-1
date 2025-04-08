@@ -1437,13 +1437,9 @@ class EyeTrackerSettingForm(ModelForm):
 class EyeTrackerDeviceSettingForm(ModelForm):
     class Meta:
         model = EyeTrackerDeviceSetting
-
-        fields = ['eyetracker_setting', 'eyetracker_device']
-
+        fields = ['eyetracker_device']
         widgets = {
-            'eyetracker_setting': Select(attrs={'class': 'form-control', 'required': "",
-                                        'data-error': _('Eye Tracker device is required')}),
-            'eyetracker_device': Select(attrs={'class': 'form-control'})
+            'eyetracker_device': Select(attrs={'class': 'form-control'}),
         }
 
 class EyeTrackerForm(ModelForm):
